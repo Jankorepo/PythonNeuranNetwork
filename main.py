@@ -1,5 +1,6 @@
 import random
 import copy
+import Propagation
 
 
 class Neuron:
@@ -9,17 +10,15 @@ class Neuron:
     bias = 0.0
 
     def __init__(self, number_of_previous_neurons):
-        self.matrix=[]
-        for i in range(number_of_previous_neurons):
+        self.matrix = []
+        for i in range(number_of_previous_neurons+1):
             self.matrix.append(random.random() * 2 - 1)
 
 
 class Network:
-    web_structure = []
-    layers = []
-
     def __init__(self, web_structure):
         self.web_structure = web_structure
+        self.layers = []
 
     def Fill(self):
         for i in range(len(self.web_structure)):
@@ -28,15 +27,14 @@ class Network:
                 if i == 0:
                     self.layers[i].append(Neuron)
                 else:
-                    self.layers[i].append(Neuron(self.web_structure[i-1]))
+                    self.layers[i].append(Neuron(self.web_structure[i - 1]))
 
 
-web = Network([5, 2, 1])
-
+web = Network([2, 2, 1])
 web.Fill()
 
-print(web.layers[0][0].matrix)
+for i in range(100000):
+    Propagation.goForward(web, [0, 1])
+    Propagation.goBackward(web, [1], 0.01)
 
-web.layers[0][0].matrix=[1]
-
-print(web.layers[1][1].matrix)
+print(web.layers[2][0].output)
