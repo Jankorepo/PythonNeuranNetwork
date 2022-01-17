@@ -18,7 +18,7 @@ def getNeuronsOutputs(network):
 def calculateSingleNeuronResult(neuron, previous_layer):
     result = neuron.bias * neuron.matrix[0]
     for i in range(len(previous_layer)):
-        result = result + (previous_layer[i].output * neuron.matrix[i + 1])
+        result += previous_layer[i].output * neuron.matrix[i + 1]
     return result
 
 
