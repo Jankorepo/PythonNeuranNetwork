@@ -1,7 +1,8 @@
 import math
 
 
-def goForward(network, inputs):
+def goForward(network, inputs_in_list_of_lists):
+    inputs = [value for sublist in inputs_in_list_of_lists for value in sublist]
     for i in range(len(network.layers[0])):
         network.layers[0][i].output = inputs[i]
     getNeuronsOutputs(network)
@@ -17,12 +18,12 @@ def getNeuronsOutputs(network):
 def calculateSingleNeuronResult(neuron, previous_layer):
     result = neuron.bias * neuron.matrix[0]
     for i in range(len(previous_layer)):
-        result = result + previous_layer[i].output * neuron.matrix[i + 1]
+        result = result + (previous_layer[i].output * neuron.matrix[i + 1])
     return result
 
 
 def goBackward(network, outputs, learing_rate):
-    for i in range(len(network.layers)-1, -1, -1):
+    for i in range(len(network.layers) - 1, -1, -1):
         for j in range(len(network.layers[i])):
             if i == len(network.layers) - 1:
                 network.layers[i][j].correction = (outputs[j] - network.layers[i][j].output) \
@@ -53,5 +54,5 @@ def getCorrectionOfNeuronInHiddenLayer(list_of_corrections):
 
 def upgradeNeuronWeights(neuron, previous_layer):
     neuron.matrix[0] = neuron.matrix[0] + neuron.bias * neuron.correction
-    for i in range(len(neuron.matrix)):
+    for i in range(1, len(neuron.matrix)):
         neuron.matrix[i] += previous_layer[i - 1].output * neuron.correction
