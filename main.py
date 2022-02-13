@@ -1,6 +1,7 @@
 import random
 import Propagation
 from keras.datasets import mnist
+import numpy as np
 
 
 class Neuron:
@@ -11,9 +12,8 @@ class Neuron:
         self.bias = 1.0
 
     def setRandomMatrix(self, number_of_previous_neurons):
-        self.matrix = []
-        for i in range(number_of_previous_neurons + 1):
-            self.matrix.append(random.random() * 2 - 1)
+        self.matrix = np.random.rand(number_of_previous_neurons + 1, 1)
+        self.matrix = (self.matrix * 2) - 1
         return self
 
 
@@ -24,28 +24,32 @@ class Network:
         self.fill()
 
     def fill(self):
-        for i in range(len(self.web_structure)):
+        for layer in range(len(self.web_structure)):
             self.layers.append([])
-            for j in range(self.web_structure[i]):
-                if i == 0:
-                    self.layers[i].append(Neuron())
+            for number_in_layer in range(self.web_structure[layer]):
+                if layer == 0:
+                    self.layers[layer].append(Neuron())
                 else:
-                    self.layers[i].append(Neuron().setRandomMatrix(self.web_structure[i - 1]))
+                    self.layers[layer].append(Neuron().setRandomMatrix(self.web_structure[layer - 1]))
 
     def learnTrainSamples(self, train_samples, answers, epochs):
-        for i in range(epochs):
-            line = random.randint(0, len(train_samples-1))
-            outputs = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        for epoch in range(epochs):
+            if epoch % 100 == 0:
+                print("Próbka numer " + str(epoch))
+            line = random.randint(0, len(train_samples) - 1)
+            outputs = list(np.zeros(10))
             outputs[answers[line]] = 1
             Propagation.goForward(self, [number / 255 for number in train_samples[line]])
             Propagation.goBackward(self, outputs, 0.1)
 
     def recognizeTestSamples(self, test_samples, answers):
         sum_of_correct_answers = 0
-        for i in range(len(test_samples)):
-            outputs = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-            outputs[answers[i]] = 1
-            Propagation.goForward(self, [number / 255 for number in test_samples[i]])
+        for sample_number in range(len(test_samples)):
+            if sample_number % 100 == 0:
+                print("Test numer " + str(sample_number))
+            outputs = list(np.zeros(10))
+            outputs[answers[sample_number]] = 1
+            Propagation.goForward(self, [number / 255 for number in test_samples[sample_number]])
             result = [neuron.output for neuron in self.layers[-1]]
             if result.index(max(result)) == outputs.index(max(outputs)):
                 sum_of_correct_answers += 1
@@ -53,7 +57,7 @@ class Network:
         print("Correct answers: " + str(sum_of_correct_answers))
 
 
-epoch_number = 40001
+epoch_number = 10000
 web_layers_size = [784, 20, 20, 10]
 (train_X, train_Y), (test_X, test_Y) = mnist.load_data()
 
