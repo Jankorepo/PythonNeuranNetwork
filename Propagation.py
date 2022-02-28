@@ -1,4 +1,5 @@
 import math
+import numpy as np
 
 
 def goForward(network, inputs_in_list_of_lists):
@@ -9,17 +10,17 @@ def goForward(network, inputs_in_list_of_lists):
 
 
 def getNeuronsOutputs(network):
-    for neuron_number in range(1, len(network.layers)):
-        for neuron_matrix_num in range(len(network.layers[neuron_number])):
-            neuron_result = calculateSingleNeuronResult(network.layers[neuron_number][neuron_matrix_num],
-                                                        network.layers[neuron_number - 1])
-            network.layers[neuron_number][neuron_matrix_num].output = 1 / (1 + (math.exp((-1) * neuron_result)))
+    for layer_number in range(1, len(network.layers)):
+        for neuron_number in range(len(network.layers[layer_number])):
+            neuron_result = calculateSingleNeuronResult(network.layers[layer_number][neuron_number],
+                                                        network.layers[layer_number - 1])
+            network.layers[layer_number][neuron_number].output = 1 / (1 + (math.exp((-1) * neuron_result)))
 
 
 def calculateSingleNeuronResult(neuron, previous_layer):
     result = neuron.bias * neuron.matrix[0]
-    for neuron_number in range(len(previous_layer)):
-        result += previous_layer[neuron_number].output * neuron.matrix[neuron_number + 1]
+    prev_layer_outputs = np.array([neuron.output for neuron in previous_layer])
+    result += sum(prev_layer_outputs * neuron.matrix[1:])
     return result
 
 
@@ -49,7 +50,7 @@ def calculateFinalCorr(network, outputs, layer_number, neuron_number, learing_ra
 
 
 def calculateHiddenCorr(network, layer_number, neuron_number, list_of_corrections):
-    return getCorrOfNeuronInHidLayer(list_of_corrections) * network.layers[layer_number][neuron_number].output \
+    return sum(list_of_corrections) * network.layers[layer_number][neuron_number].output \
            * (1 - network.layers[layer_number][neuron_number].output)
 
 
@@ -60,11 +61,7 @@ def getAllCorrOfNextLayer(next_layer, number_of_neuron):
     return tmp_list
 
 
-def getCorrOfNeuronInHidLayer(list_of_corrections):
-    return sum(list_of_corrections)
-
-
 def upgradeNeuronWeights(neuron, previous_layer):
     neuron.matrix[0] = neuron.matrix[0] + neuron.bias * neuron.correction
-    for neuron_number in range(1, len(neuron.matrix)):
-        neuron.matrix[neuron_number] += previous_layer[neuron_number - 1].output * neuron.correction
+    prev_layer_outputs = np.array([prev_lay_neuron.output * neuron.correction for prev_lay_neuron in previous_layer])
+    neuron.matrix[1:] = neuron.matrix[1:] + prev_layer_outputs
