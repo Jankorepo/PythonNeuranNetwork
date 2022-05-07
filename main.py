@@ -50,8 +50,7 @@ class Network:
             if np.where(result == max(result)) == np.where(outputs == max(outputs)):
                 sum_of_correct_answers += 1
         print("Test samples: " + str(len(test_samples)))
-        print("Trained model correct answers: " + str(sum_of_correct_answers/len(test_samples)*100)+"%")
-        print("Random correct answers number is around 10%")
+        print("Correct answers: " + str(sum_of_correct_answers))
 
 
 t0 = time.time()
@@ -63,5 +62,5 @@ learning_rate = 0.1
 web = Network(web_layers_size)
 
 web.learnTrainSamples(train_X, train_Y, epoch_number, learning_rate)
-print("Model train time: ", time.time() - t0)
+print(time.time() - t0)
 web.recognizeTestSamples(test_X, test_Y)
