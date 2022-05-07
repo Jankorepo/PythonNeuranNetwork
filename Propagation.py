@@ -3,7 +3,7 @@ import numpy as np
 
 
 def goForward(network, inputs_in_list_of_lists):
-    inputs = [value for sublist in inputs_in_list_of_lists for value in sublist]
+    inputs = np.array([value for sublist in inputs_in_list_of_lists for value in sublist])
     for neuron_number in range(len(network.layers[0])):
         network.layers[0][neuron_number].output = inputs[neuron_number]
     getNeuronsOutputs(network)
@@ -24,41 +24,32 @@ def calculateSingleNeuronResult(neuron, previous_layer):
     return result
 
 
-def goBackward(network, outputs, learing_rate):
+def goBackward(network, outputs, learning_rate):
     for layer_number in range(len(network.layers) - 1, -1, -1):
-        for neuron_number in range(len(network.layers[layer_number])):
-            if layer_number == len(network.layers) - 1:
-                network.layers[layer_number][neuron_number].correction = calculateFinalCorr(network,
-                                                                                            outputs, layer_number,
-                                                                                            neuron_number,
-                                                                                            learing_rate)
-            else:
-                list_of_corrections = getAllCorrOfNextLayer(network.layers[layer_number + 1], neuron_number)
-                network.layers[layer_number][neuron_number].correction = calculateHiddenCorr(network,
-                                                                                             layer_number,
-                                                                                             neuron_number,
-                                                                                             list_of_corrections)
+        if layer_number == len(network.layers) - 1:
+            calcFinalCorrections(network.layers[layer_number], outputs, learning_rate)
+        else:
+            calcHiddenCorrections(network.layers[layer_number], network.layers[layer_number + 1])
+
     for layer_number in range(1, len(network.layers)):
         for neuron_number in range(len(network.layers[layer_number])):
             upgradeNeuronWeights(network.layers[layer_number][neuron_number], network.layers[layer_number - 1])
 
 
-def calculateFinalCorr(network, outputs, layer_number, neuron_number, learing_rate):
-    return (outputs[neuron_number] - network.layers[layer_number][neuron_number].output) * learing_rate \
-           * network.layers[layer_number][neuron_number].output \
-           * (1 - network.layers[layer_number][neuron_number].output)
+def calcFinalCorrections(neurons, outputs, learning_rate):
+    for i in range(len(neurons)):
+        neurons[i].correction = (outputs[i] - neurons[i].output) * learning_rate * neurons[i].output * \
+                                (1 - neurons[i].output)
 
 
-def calculateHiddenCorr(network, layer_number, neuron_number, list_of_corrections):
-    return sum(list_of_corrections) * network.layers[layer_number][neuron_number].output \
-           * (1 - network.layers[layer_number][neuron_number].output)
-
-
-def getAllCorrOfNextLayer(next_layer, number_of_neuron):
-    tmp_list = []
-    for neuron_number in range(len(next_layer)):
-        tmp_list.append(next_layer[neuron_number].correction * next_layer[neuron_number].matrix[number_of_neuron + 1])
-    return tmp_list
+def calcHiddenCorrections(layer, next_layer):
+    for neuron_number in range(len(layer)):
+        sum_of_corrections = 0
+        for next_layer_neuron_number in range(len(next_layer)):
+            sum_of_corrections += next_layer[next_layer_neuron_number].correction * \
+                                  next_layer[next_layer_neuron_number].matrix[neuron_number + 1]
+        layer[neuron_number].correction = sum_of_corrections * layer[neuron_number].output * \
+                                          (1 - layer[neuron_number].output)
 
 
 def upgradeNeuronWeights(neuron, previous_layer):

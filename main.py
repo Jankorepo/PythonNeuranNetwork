@@ -42,25 +42,28 @@ class Network:
 
     def recognizeTestSamples(self, test_samples, answers):
         sum_of_correct_answers = 0
-        for sample_number in range(len(test_samples)):
+        for sample_number in range(10000):
             outputs = np.zeros(10)
             outputs[answers[sample_number]] = 1
             Propagation.goForward(self, [number / 255 for number in test_samples[sample_number]])
             result = np.array([neuron.output for neuron in self.layers[-1]])
             if np.where(result == max(result)) == np.where(outputs == max(outputs)):
                 sum_of_correct_answers += 1
-        print("Test samples: " + str(len(test_samples)))
-        print("Correct answers: " + str(sum_of_correct_answers))
+        print("Model correct answers: " + str(sum_of_correct_answers / len(test_samples) * 100), "%")
+        print("Random correct answers number in around 10%")
 
 
 t0 = time.time()
-epoch_number = 3000
+epoch_number = 15000
 web_layers_size = [784, 20, 10]
-learning_rate = 0.1
+learning_rate = 0.15
 (train_X, train_Y), (test_X, test_Y) = mnist.load_data()
-
 web = Network(web_layers_size)
+print("Read data time: ", time.time() - t0, "\n")
 
 web.learnTrainSamples(train_X, train_Y, epoch_number, learning_rate)
-print(time.time() - t0)
+print("Model train is done!")
+t1 = time.time() - t0
+print("Train time: ", t1, "\n")
 web.recognizeTestSamples(test_X, test_Y)
+print("Model test time: ", time.time() - t0 - t1)
